@@ -7,7 +7,7 @@ Created on Tue Oct 13 10:42:18 2015
 
 import PO
 
-P=PO()
+P=PO.PO()
 P.pprint("Willkommen in der PrettyOutput-DEMO!",10,3)
 
 STRtext = ""
