@@ -12,6 +12,7 @@ import sys
 import termios
 import os
 import fcntl, termios, struct, string
+import syntax
 
 # TODO:
 # Verschiedene Darstellungsmodi implementieren:
@@ -56,7 +57,7 @@ class pp():
 
 
 
-    def __print__(self, STRcontent, INTcolor=0, INTborder=0):
+    def __print__(self, STRcontent, INTcolor=0, INTborder=0, STRsyntaxtype="none"):
 
         # border:
         # 0 = kein Rand
@@ -64,6 +65,10 @@ class pp():
         # 2 = Rand mit + Linie
         # 3 = Rand mit * Linie
         # 4 = Rand mit # Linie
+
+        # syntaxtype:
+        # none = kein Syntaxhighlighting (Standard)
+        # mysql = MySQL-Highlighting
 
         self.__INTprocesscounter__ += 1
         
@@ -85,12 +90,12 @@ class pp():
         for INTline in range(len(LSTout)):
 
             if INTline == 0:
-                LSTout[INTline] = self.__parse__(LSTout[INTline], INTcolor)
+                LSTout[INTline] = self.__parse__(LSTout[INTline], INTcolor, STRsyntaxtype)
                 STRtmp = "%s%s%s%s%s" % (self.__LSTfcolor__[0], STRoutc, self.__LSTfcolor__[INTcolor], LSTout[INTline],self.__LSTfcolorend__)
                 print STRtmp
             else:
                 STRtmp = "%s%s%s%s" % (self.__LSTfcolor__[INTcolor],STRoutb, LSTout[INTline],self.__LSTfcolorend__)
-                print self.__parse__(STRtmp,INTcolor)
+                print self.__parse__(STRtmp, INTcolor, STRsyntaxtype)
 
 
     def __linewrap__(self, STRcontent, INTwidthreducer, INTborder):
@@ -190,108 +195,23 @@ class pp():
             return LSTreturn
 
 
-    def __parse__(self, STRcontent, INTcolor=0):
+    def __parse__(self, STRcontent, INTcolor=0, STRsyntaxtype="none"):
 
-        LSTunderline = ['PPRINT']
-        LSTmysql = ['ACTION', 'ADD', 'AFTER', 'AGAINST', 'AGGREGATE', 'ALGORITHM', 
-                    'ALL', 'ALTER', 'ANALYZE', 'AND', 'ANY', 'AS', 'ASC', 'ASCII', 
-                    'ASENSITIVE', 'AUTO_INCREMENT', 'AVG', 'AVG_ROW_LENGTH', 
-                    'BACKUP', 'BDB', 'BEFORE', 'BEGIN', 'BERKELEYDB', 'BETWEEN', 
-                    'BIGINT', 'BINARY', 'BINLOG', 'BIT', 'BLOB', 'BLOCK', 'BOOL', 
-                    'BOOLEAN', 'BOTH', 'BTREE', 'BY', 'BYTE', 'CACHE', 'CALL', 
-                    'CASCADE', 'CASCADED', 'CASE', 'CHAIN', 'CHANGE', 'CHANGED', 
-                    'CHAR', 'CHARACTER', 'CHARSET', 'CHECK', 'CHECKSUM', 'CIPHER', 
-                    'CLIENT', 'CLOSE', 'CODE', 'COLLATE', 'COLLATION', 'COLUMN', 
-                    'COLUMNS', 'COMMENT', 'COMMIT', 'COMMITTED', 'COMPACT', 
-                    'COMPRESSED', 'CONCURRENT', 'CONDITION', 'CONNECTION', 
-                    'CONSISTENT', 'CONSTRAINT', 'CONTAINS', 'CONTEXT', 'CONTINUE', 
-                    'CONVERT', 'CPU', 'CREATE', 'CROSS', 'CUBE', 'CURRENT_DATE', 
-                    'CURRENT_TIME', 'CURRENT_TIMESTAMP', 'CURRENT_USER', 'CURSOR', 
-                    'DATA', 'DATABASE', 'DATABASES', 'DATE', 'DATETIME', 'DAY', 
-                    'DAY_HOUR', 'DAY_MICROSECOND', 'DAY_MINUTE', 'DAY_SECOND', 
-                    'DEALLOCATE', 'DEC', 'DECIMAL', 'DECLARE', 'DEFAULT', 'DEFINER', 
-                    'DELAYED', 'DELAY_KEY_WRITE', 'DELETE', 'DESC', 'DESCRIBE', 
-                    'DES_KEY_FILE', 'DETERMINISTIC', 'DIRECTORY', 'DISABLE', 
-                    'DISCARD', 'DISTINCT', 'DISTINCTROW', 'DIV', 'DO', 'DOUBLE', 
-                    'DROP', 'DUAL', 'DUMPFILE', 'DUPLICATE', 'DYNAMIC', 'EACH', 
-                    'ELSE', 'ELSEIF', 'ENABLE', 'ENCLOSED', 'END', 'ENGINE', 
-                    'ENGINES', 'ENUM', 'ERRORS', 'ESCAPE', 'ESCAPED', 'EVENTS', 
-                    'EXECUTE', 'EXISTS', 'EXIT', 'EXPANSION', 'EXPLAIN', 
-                    'EXTENDED', 'FALSE', 'FAST', 'FAULTS', 'FETCH', 'FIELDS', 
-                    'FILE', 'FIRST', 'FIXED', 'FLOAT', 'FLOAT4', 'FLOAT8', 'FLUSH', 
-                    'FOR', 'FORCE', 'FOREIGN', 'FOUND', 'FRAC_SECOND', 'FROM', 
-                    'FULL', 'FULLTEXT', 'FUNCTION', 'GEOMETRY', 'GEOMETRYCOLLECTION', 
-                    'GET_FORMAT', 'GLOBAL', 'GRANT', 'GRANTS', 'GROUP', 'HANDLER', 
-                    'HASH', 'HAVING', 'HELP', 'HIGH_PRIORITY', 'HOSTS', 'HOUR', 
-                    'HOUR_MICROSECOND', 'HOUR_MINUTE', 'HOUR_SECOND', 'IDENTIFIED', 
-                    'IF', 'IGNORE', 'IMPORT', 'IN', 'INDEX', 'INDEXES', 'INFILE', 
-                    'INNER', 'INNOBASE', 'INNODB', 'INOUT', 'INSENSITIVE', 'INSERT', 
-                    'INSERT_METHOD', 'INT', 'INT1', 'INT2', 'INT3', 'INT4', 'INT8', 
-                    'INTEGER', 'INTERVAL', 'INTO', 'INVOKER', 'IO', 'IO_THREAD', 
-                    'IPC', 'IS', 'ISOLATION', 'ISSUER', 'ITERATE', 'JOIN', 'KEY', 
-                    'KEYS', 'KILL', 'LANGUAGE', 'LAST', 'LEADING', 'LEAVE', 'LEAVES', 
-                    'LEFT', 'LEVEL', 'LIKE', 'LIMIT', 'LINES', 'LINESTRING', 'LOAD', 
-                    'LOCAL', 'LOCALTIME', 'LOCALTIMESTAMP', 'LOCK', 'LOCKS', 'LOGS', 
-                    'LONG', 'LONGBLOB', 'LONGTEXT', 'LOOP', 'LOW_PRIORITY', 'MASTER', 
-                    'MASTER_CONNECT_RETRY', 'MASTER_HOST', 'MASTER_LOG_FILE', 
-                    'MASTER_LOG_POS', 'MASTER_PASSWORD', 'MASTER_PORT', 
-                    'MASTER_SERVER_ID', 'MASTER_SSL', 'MASTER_SSL_CA', 
-                    'MASTER_SSL_CAPATH', 'MASTER_SSL_CERT', 'MASTER_SSL_CIPHER', 
-                    'MASTER_SSL_KEY', 'MASTER_USER', 'MATCH', 
-                    'MAX_CONNECTIONS_PER_HOUR', 'MAX_QUERIES_PER_HOUR', 'MAX_ROWS', 
-                    'MAX_UPDATES_PER_HOUR', 'MAX_USER_CONNECTIONS', 'MEDIUM', 
-                    'MEDIUMBLOB', 'MEDIUMINT', 'MEDIUMTEXT', 'MEMORY', 'MERGE', 
-                    'MICROSECOND', 'MIDDLEINT', 'MIGRATE', 'MINUTE', 
-                    'MINUTE_MICROSECOND', 'MINUTE_SECOND', 'MIN_ROWS', 'MOD', 'MODE', 
-                    'MODIFIES', 'MODIFY', 'MONTH', 'MULTILINESTRING', 'MULTIPOINT', 
-                    'MULTIPOLYGON', 'MUTEX', 'NAME', 'NAMES', 'NATIONAL', 'NATURAL', 
-                    'NCHAR', 'NDB', 'NDBCLUSTER', 'NEW', 'NEXT', 'NO', 'NONE', 
-                    'NOT', 'NO_WRITE_TO_BINLOG', 'NULL', 'NUMERIC', 'NVARCHAR', 
-                    'OFFSET', 'OLD_PASSWORD', 'ON', 'ONE', 'ONE_SHOT', 'OPEN', 
-                    'OPTIMIZE', 'OPTION', 'OPTIONALLY', 'OR', 'ORDER', 'OUT', 
-                    'OUTER', 'OUTFILE', 'PACK_KEYS', 'PAGE', 'PARTIAL', 'PASSWORD', 
-                    'PHASE', 'POINT', 'POLYGON', 'PRECISION', 'PREPARE', 'PREV', 
-                    'PRIMARY', 'PRIVILEGES', 'PROCEDURE', 'PROCESSLIST', 'PROFILE', 
-                    'PROFILES', 'PURGE', 'QUARTER', 'QUERY', 'QUICK', 'RAID0', 
-                    'RAID_CHUNKS', 'RAID_CHUNKSIZE', 'RAID_TYPE', 'READ', 'READS', 
-                    'REAL', 'RECOVER', 'REDUNDANT', 'REFERENCES', 'REGEXP', 
-                    'RELAY_LOG_FILE', 'RELAY_LOG_POS', 'RELAY_THREAD', 'RELEASE', 
-                    'RELOAD', 'RENAME', 'REPAIR', 'REPEAT', 'REPEATABLE', 'REPLACE', 
-                    'REPLICATION', 'REQUIRE', 'RESET', 'RESTORE', 'RESTRICT', 
-                    'RESUME', 'RETURN', 'RETURNS', 'REVOKE', 'RIGHT', 'RLIKE', 
-                    'ROLLBACK', 'ROLLUP', 'ROUTINE', 'ROW', 'ROWS', 'ROW_FORMAT', 
-                    'RTREE', 'SAVEPOINT', 'SCHEMA', 'SCHEMAS', 'SECOND', 
-                    'SECOND_MICROSECOND', 'SECURITY', 'SELECT', 'SENSITIVE', 
-                    'SEPARATOR', 'SERIAL', 'SERIALIZABLE', 'SESSION', 'SET', 
-                    'SHARE', 'SHOW', 'SHUTDOWN', 'SIGNED', 'SIMPLE', 'SLAVE', 
-                    'SMALLINT', 'SNAPSHOT', 'SOME', 'SONAME', 'SOUNDS', 'SOURCE', 
-                    'SPATIAL', 'SPECIFIC', 'SQL', 'SQLEXCEPTION', 'SQLSTATE', 
-                    'SQLWARNING', 'SQL_BIG_RESULT', 'SQL_BUFFER_RESULT', 'SQL_CACHE', 
-                    'SQL_CALC_FOUND_ROWS', 'SQL_NO_CACHE', 'SQL_SMALL_RESULT', 
-                    'SQL_THREAD', 'SQL_TSI_DAY', 'SQL_TSI_FRAC_SECOND', 
-                    'SQL_TSI_HOUR', 'SQL_TSI_MINUTE', 'SQL_TSI_MONTH', 
-                    'SQL_TSI_QUARTER', 'SQL_TSI_SECOND', 'SQL_TSI_WEEK', 
-                    'SQL_TSI_YEAR', 'SSL', 'START', 'STARTING', 'STATUS', 'STOP', 
-                    'STORAGE', 'STRAIGHT_JOIN', 'STRING', 'STRIPED', 'SUBJECT', 
-                    'SUPER', 'SUSPEND', 'SWAPS', 'SWITCHES', 'TABLE', 'TABLES', 
-                    'TABLESPACE', 'TEMPORARY', 'TEMPTABLE', 'TERMINATED', 'TEXT', 
-                    'THEN', 'TIME', 'TIMESTAMP', 'TIMESTAMPADD', 'TIMESTAMPDIFF', 
-                    'TINYBLOB', 'TINYINT', 'TINYTEXT', 'TO', 'TRAILING', 
-                    'TRANSACTION', 'TRIGGER', 'TRIGGERS', 'TRUE', 'TRUNCATE', 
-                    'TYPE', 'TYPES', 'UNCOMMITTED', 'UNDEFINED', 'UNDO', 'UNICODE', 
-                    'UNION', 'UNIQUE', 'UNKNOWN', 'UNLOCK', 'UNSIGNED', 'UNTIL', 
-                    'UPDATE', 'UPGRADE', 'USAGE', 'USE', 'USER', 'USER_RESOURCES', 
-                    'USE_FRM', 'USING', 'UTC_DATE', 'UTC_TIME', 'UTC_TIMESTAMP', 
-                    'VALUE', 'VALUES', 'VARBINARY', 'VARCHAR', 'VARCHARACTER', 
-                    'VARIABLES', 'VARYING', 'VIEW', 'WARNINGS', 'WEEK', 'WHEN', 
-                    'WHERE', 'WHILE', 'WITH', 'WORK', 'WRITE', 'X509', 'XA', 'XOR']
-        
-        LSTsplitsign = [' ', '\'', ',', '.', ';', ':', '(', ')', '[', ']', '{', '}', '<', '>', '=', '!']
+        LSTunderline = ['PRETTYOUTPUT']
+        LSTmysql = syntax.MySQL
+        LSTsplitsign = [' ', '\'', ',', '.', ';', ':', '(', ')', '[', ']', '{', '}', '<', '>', '=', '!', '+', '-', '*', '/']
         LSTsplitcontent = []
+        
+        
+        # zunaechst wird der uebergebene String komplett zerlegt: alle Zeichen
+        # der LSTsplitsign dienen als moegliche Trennzeichen. Die einzelnen
+        # Stringteile werden inklusive der Trennzeichen in der Liste
+        # LSTsplitcontent abgelegt
         
         for STRsign in LSTsplitsign:
             LSTtmp = []
             LSTtmptmp = []
+    
             if len(LSTsplitcontent)==0:    
                 LSTtmp = string.split(STRcontent, STRsign)  
                 for STRtmp in LSTtmp:
@@ -312,14 +232,16 @@ class pp():
                     
                 LSTsplitcontent = LSTtmptmp
         
+        # danach wird LSTsplitcontent durchlaufen und eingefaerbt
         INTcount = 0        
         for STRtmp in LSTsplitcontent:
-            # UNDERLINE            
+            
+            # UNDERLINE gilt immer... Werbung :-)
             if string.upper(STRtmp) in LSTunderline:
                 LSTsplitcontent[INTcount]="%s%s%s%s" % ("\033[4m",STRtmp,"\033[0m",self.__LSTfcolor__[INTcolor])
             
             #MySQL
-            elif string.upper(STRtmp) in LSTmysql:
+            elif string.upper(STRtmp) in LSTmysql and STRsyntaxtype == "mysql":
                 LSTsplitcontent[INTcount]="%s%s%s%s" % ("\033[96m",STRtmp,"\033[0m",self.__LSTfcolor__[INTcolor])
                 
             INTcount += 1
@@ -356,10 +278,11 @@ class pp():
 
         return int(cr[1]), int(cr[0])
 
-
-
     def pprint(self, STRcontent, INTcolor=0, INTborder=0):
-        self.__print__(STRcontent, INTcolor, INTborder)
+        self.__print__(STRcontent, INTcolor, INTborder, "none")
+        
+    def sqlprint(self, STRcontent, INTcolor=0, INTborder=0):
+        self.__print__(STRcontent, INTcolor, INTborder, "mysql")
 
     def pinfo(self):
         STRinfo = "Das Fenster hat eine Hoehe von %s Zeilen " % self.__height__
@@ -368,14 +291,14 @@ class pp():
 
 if __name__ == '__main__':
     P=pp()
-    P.pprint("Dies ist ein 'Test', der zeigen soll, wie bei PPrint das=das sein kann:soll")
-    P.pprint("SELECT PDID, PAID FROM 0000_00_main where PAID=1 ORdeR BY PDID")
-    P.pprint("Willkommen in der PPRINT-DEMO!",10,3)
+    P.pprint("Dies ist ein 'Test', der zeigen soll, wie bei PrettyOutput das=das sein kann:soll")
+    P.sqlprint("SELECT PDID, PAID FROM 0000_00_main where PAID=1 ORdeR BY PDID")
+    P.pprint("Willkommen in der PrettyOutput-DEMO!",10,3)
     STRtext = ""
-    STRtext += "PPRINT soll die Bildschirmausgabe von Console-Programmen verbessern. "
-    STRtext += "Das bedeutet, dass Sie nur noch Ihre Ausgabe an PPRINT uebergeben muessen, "
-    STRtext += "den Rest erledigt PPrint. Ihre Ausgabe wird an die Console angepasst, "
-    STRtext += "auf der PPrint Ihre Meldungen ausgibt. Dabei bricht PPrint automatisch um, "
+    STRtext += "PrettyOutput soll die Bildschirmausgabe von Console-Programmen verbessern. "
+    STRtext += "Das bedeutet, dass Sie nur noch Ihre Ausgabe an PrettyOutput uebergeben muessen, "
+    STRtext += "den Rest erledigt PrettyOutput. Ihre Ausgabe wird an die Console angepasst, "
+    STRtext += "auf der PrettyOutput Ihre Meldungen ausgibt. Dabei bricht PrettyOutput automatisch um, "
     STRtext += "sobald das Zeilenende erreicht ist."
     P.pprint(STRtext)
     STRtext = ""
