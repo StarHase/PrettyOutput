@@ -14,7 +14,12 @@ STRtext = ""
 STRtext += "PrettyOutput soll die Bildschirmausgabe von Console-Programmen verbessern. "
 STRtext += "Der Text wird automatisch umgebrochen und eingerueckt, so dass die Ausgabe "
 STRtext += "immer gut lesbar sein sollte. "
-P.pprint(STRtext,0,3)
+P.pprint(STRtext,0,0)
+
+STRtext = ""
+STRtext += "Natuerlich kann auch Text innerhalb von Rahmen umgebrochen werden. "
+STRtext += "Welche Rahmenarten es gibt, wird weiter unten aufgefuehrt."
+P.pprint(STRtext,0,2)
 
 P.pprint("Bunte Texte sind kein Problem:",1,0)
 P.pprint("Dieser Text ist weiss............:  [0] -> pprint(\"Dieser Text ist [...]\",0)", 0)

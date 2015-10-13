@@ -88,14 +88,29 @@ class PO():
         LSTout = self.__linewrap__(STRcontent, len(STRoutb), INTborder)
 
         for INTline in range(len(LSTout)):
-
-            if INTline == 0:
-                LSTout[INTline] = self.__parse__(LSTout[INTline], INTcolor, STRsyntaxtype)
-                STRtmp = "%s%s%s%s%s" % (self.__LSTfcolor__[0], STRoutc, self.__LSTfcolor__[INTcolor], LSTout[INTline],self.__LSTfcolorend__)
-                print STRtmp
+            
+            if INTborder > 0:
+                # Header                
+                if INTline == 0:
+                    LSTout[INTline] = self.__parse__(LSTout[INTline], INTcolor, STRsyntaxtype)
+                    STRtmp = "%s%s%s%s%s" % (self.__LSTfcolor__[0], STRoutc, self.__LSTfcolor__[INTcolor], LSTout[INTline],self.__LSTfcolorend__)
+                    print STRtmp
+                # Content
+                elif INTline not in [1, len(LSTout)-2, len(LSTout)-1]:
+                    STRtmp = "%s%s%s  %s  %s%s" % (self.__LSTfcolor__[INTcolor], STRoutb, self.__LSTborder__[INTborder], LSTout[INTline], self.__LSTborder__[INTborder], self.__LSTfcolorend__)
+                    print self.__parse__(STRtmp, INTcolor, STRsyntaxtype)
+                # Border
+                else:
+                    STRtmp = "%s%s%s%s" % (self.__LSTfcolor__[INTcolor],STRoutb, LSTout[INTline],self.__LSTfcolorend__)
+                    print self.__parse__(STRtmp, INTcolor, STRsyntaxtype)
             else:
-                STRtmp = "%s%s%s%s" % (self.__LSTfcolor__[INTcolor],STRoutb, LSTout[INTline],self.__LSTfcolorend__)
-                print self.__parse__(STRtmp, INTcolor, STRsyntaxtype)
+                if INTline == 0:
+                    LSTout[INTline] = self.__parse__(LSTout[INTline], INTcolor, STRsyntaxtype)
+                    STRtmp = "%s%s%s%s%s" % (self.__LSTfcolor__[0], STRoutc, self.__LSTfcolor__[INTcolor], LSTout[INTline],self.__LSTfcolorend__)
+                    print STRtmp
+                else:
+                    STRtmp = "%s%s%s%s" % (self.__LSTfcolor__[INTcolor],STRoutb, LSTout[INTline],self.__LSTfcolorend__)
+                    print self.__parse__(STRtmp, INTcolor, STRsyntaxtype)
 
 
     def __linewrap__(self, STRcontent, INTwidthreducer, INTborder):
@@ -104,42 +119,62 @@ class PO():
         # STRcontent:       Inhalt der ggf umgebrochen wird
         # INTwidthreducer:  Gibt an, wie breit der rechte, leere Rand ist
         # INTborder:        Rahmenart (0=ohne Rahmen)
+        
         LSTreturn = []
         
+        
+        # INTborderborder = innerer Abstand bei Rahmen: 
+        # <Rahmen><Leer><Leer><Content><Leer><Leer><Rahmen>
+        # also 3 Zeichen vor- und 3 Zeichen nach Inhalt = 6 Zeichen
         INTborderborder = 6*len(self.__LSTborder__[INTborder])
 
+        
+        # Wenn Rahmen, dann sind die ersten beiden Ausgabezeilen nur Rahmen        
         if INTborder > 0:
 
             LSTreturn.append(self.__LSTborder__[INTborder] * (self.__width__ - INTwidthreducer))
             LSTreturn.append("%s%s%s" %(self.__LSTborder__[INTborder], " " * (self.__width__ - INTwidthreducer - 2),self.__LSTborder__[INTborder]))
 
+        # Maximale Inhaltsbreite ermitteln        
         INTmax = self.__width__ - INTwidthreducer - INTborderborder
 
-        if INTmax < 0:
+        # Wenn Maximale Inhaltsbreite weniger als ein Zeichen, dann raus hier
+        if INTmax < 1:
             return LSTreturn
 
+        # ist der Inhalt so lang, dass die Zeile umgebrochen werden muss?        
         if len(STRcontent) > INTmax:
+            
+            # STRcontent zerlegen            
             LSTsplit = string.split(STRcontent,' ')
-            INTsplit = len(LSTsplit)
+        
+            # Besteht STRcontent aus mehr als einem Wort?            
+            if len(LSTsplit) > 1:
+                
+                STRtmp = ""  # temporaere Rueckgabezeile (TRZ)
 
-            if INTsplit > 1:
-                INTsum = 0
-                STRtmp = ""
+                for INTi in range(len(LSTsplit)):
 
-                for INTi in range(INTsplit):
-
+                    # Ist das aktuelle Wort laenger als INTmax                    
                     if len(LSTsplit[INTi]) > INTmax:
 
+                        
+                        # Enthaelt die TRZ schon Inhalt                        
                         if len(STRtmp)>0:
+                            # Da das Wort sowieso schon laenger als eine Zeile ist, 
+                            # haenge es an TRZ an und brich mitten im Wort um.
                             LSTreturn += self.__ssplit__("%s %s" % (STRtmp, LSTsplit[INTi]), INTmax)
 
+                        # Nachdem mitten im Wort umgebrochen wurde (durchaus 
+                        # auch mehrfach), ueberschreibe TRZ mit dem Wortrest des
+                        # Ueberlangen Wortes, also mit dem Inhalt des letzten                        
                         if INTi < len(LSTsplit)-1:
-                            STRtmp = LSTreturn[len(LSTreturn)-1]
-                            STRnotused=LSTreturn.pop()
-
+                            STRtmp = LSTreturn.pop()
+                            
                         else:
                             STRtmp=""
-
+                            
+                    # Das aktuelle Wort ist nicht laenger als INTmax
                     else:
 
                         if STRtmp == "":
@@ -151,24 +186,25 @@ class PO():
                                 STRtmp = "%s %s" % (STRtmp, LSTsplit[INTi])
 
                             else:
-                                LSTreturn.append(STRtmp)
+                                LSTreturn.append("%s%s" % (STRtmp, (INTmax-len(STRtmp))*' '))
                                 STRtmp = LSTsplit[INTi]
 
                 if STRtmp <> "":
-                    LSTreturn.append(STRtmp)
+                    LSTreturn.append("%s%s" % (STRtmp, (INTmax-len(STRtmp))*' '))
 
                 if INTborder > 0:
                     LSTreturn.append("%s%s%s" %(self.__LSTborder__[INTborder], " " * (self.__width__ - INTwidthreducer - 2),self.__LSTborder__[INTborder]))
                     LSTreturn.append(self.__LSTborder__[INTborder] * (self.__width__ - INTwidthreducer))
                 return LSTreturn
 
+            # STRcontent besteht nur aus einem Wort            
             else:
                 return self.__ssplit__(STRcontent, INTmax)
 
         else:
 
             if INTborder > 0:
-                    LSTreturn.append("%s  %s%s  %s" % (self.__LSTborder__[INTborder], STRcontent, " " * (INTmax-len(STRcontent)), self.__LSTborder__[INTborder]))
+                    LSTreturn.append("%s%s" % (STRcontent, (INTmax-len(STRcontent))*' '))
                     LSTreturn.append("%s%s%s" %(self.__LSTborder__[INTborder], " " * (self.__width__ - INTwidthreducer - 2),self.__LSTborder__[INTborder]))
                     LSTreturn.append(self.__LSTborder__[INTborder] * (self.__width__ - INTwidthreducer))
 
@@ -182,11 +218,10 @@ class PO():
         LSTreturn = []
 
         if len(STRcontent)<INTmaxwidth:
-            LSTreturn.append(STRcontent)
+            LSTreturn.append("%s%s" % (STRcontent, (INTmaxwidth - len(STRcontent))*' '))
             return LSTreturn
         else:
-            INTmax = len(STRcontent) / INTmaxwidth
-            for INTi in range(INTmax):
+            for INTi in range(len(STRcontent) / INTmaxwidth):
                 LSTreturn.append(STRcontent[INTi*INTmaxwidth:(INTi+1)*INTmaxwidth])
 
             if len(STRcontent) % INTmaxwidth <> 0:
