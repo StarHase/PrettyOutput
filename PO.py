@@ -23,7 +23,7 @@ import syntax
 # Nummer zurückgegeben wird, anhand derer man Zeitunterschiede messen kann.
 
 
-class pp():
+class PO():
 
     def __init__(self):
         self.__DICprocessestimes__  = {}
@@ -73,9 +73,9 @@ class pp():
         self.__INTprocesscounter__ += 1
         
         # STRoutc ist die Zeile, mit der die Prozessnummer und die Uhrzeit
-        # ausgegeben werden: xxxx - hh:mm:ss: Ausgabeinhalt
+        # ausgegeben werden: xxxx - hh:mm:ss: Ausgabeinhalt. Das c steht fuer count
         
-        # STRoutb ist die Zeile ohne Prozessnummer und Zeit
+        # STRoutb ist die Zeile ohne Prozessnummer und Zeit. Das b steht fuer blank
         
         STRoutc=""
         STRoutc += "%.5d" % self.__INTprocesscounter__
@@ -207,6 +207,8 @@ class pp():
         # der LSTsplitsign dienen als moegliche Trennzeichen. Die einzelnen
         # Stringteile werden inklusive der Trennzeichen in der Liste
         # LSTsplitcontent abgelegt
+        # Bsp: Das ist toll! Oder?
+        # ['Das', ' ', 'ist', ' ', 'toll', '!', ' ', 'Oder', '?']
         
         for STRsign in LSTsplitsign:
             LSTtmp = []
@@ -290,44 +292,5 @@ class pp():
         self.pprint(STRinfo)
 
 if __name__ == '__main__':
-    P=pp()
-    P.pprint("Dies ist ein 'Test', der zeigen soll, wie bei PrettyOutput das=das sein kann:soll")
-    P.sqlprint("SELECT PDID, PAID FROM 0000_00_main where PAID=1 ORdeR BY PDID")
-    P.pprint("Willkommen in der PrettyOutput-DEMO!",10,3)
-    STRtext = ""
-    STRtext += "PrettyOutput soll die Bildschirmausgabe von Console-Programmen verbessern. "
-    STRtext += "Das bedeutet, dass Sie nur noch Ihre Ausgabe an PrettyOutput uebergeben muessen, "
-    STRtext += "den Rest erledigt PrettyOutput. Ihre Ausgabe wird an die Console angepasst, "
-    STRtext += "auf der PrettyOutput Ihre Meldungen ausgibt. Dabei bricht PrettyOutput automatisch um, "
-    STRtext += "sobald das Zeilenende erreicht ist."
-    P.pprint(STRtext)
-    STRtext = ""
-    STRtext += "Der folgende Text ist ein langer Text, der sowohl sehr lange Zeichenketten, "
-    STRtext += "als auch ganz normale Woerter enthaelt. Durch diesen Text soll "
-    STRtext += "geziegt werden, dass der Umbruch sauber funktioniert."
-    P.pprint(STRtext)
-    STRtext = ""
-    STRtext += "Auto Haus AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA ist BBBBBBBBBBBBBBBBBBBBBBBBBBB "
-    STRtext += "kann Dach soll gerne CCCCCCCCCCCCCCCCCCCCCCCCCCC mit DDDDDDDDDDDDDDDDDDDDDDDDD "
-    STRtext += "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE "
-    STRtext += "eins zwei drei FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF vier "
-    STRtext += "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-    P.pprint(STRtext)
-    P.pprint("Dieser Text ist weiss............:  [0] -> pprint(\"Dieser Text ist [...]\",0)", 0)
-    P.pprint("Dieser Text ist hellgrau.........:  [1] -> pprint(\"Dieser Text ist [...]\",1)", 1)
-    P.pprint("Dieser Text ist gelb.............:  [2] -> pprint(\"Dieser Text ist [...]\",2)", 2)
-    P.pprint("Dieser Text ist orange...........:  [3] -> pprint(\"Dieser Text ist [...]\",3)", 3)
-    P.pprint("Dieser Text ist hellgruen........:  [4] -> pprint(\"Dieser Text ist [...]\",4)", 4)
-    P.pprint("Dieser Text ist dunkelgruen......:  [5] -> pprint(\"Dieser Text ist [...]\",5)", 5)
-    P.pprint("Dieser Text ist hellrot..........:  [6] -> pprint(\"Dieser Text ist [...]\",6)", 6)
-    P.pprint("Dieser Text ist dunkelrot........:  [7] -> pprint(\"Dieser Text ist [...]\",7)", 7)
-    P.pprint("Dieser Text ist rosa.............:  [8] -> pprint(\"Dieser Text ist [...]\",8)", 8)
-    P.pprint("Dieser Text ist lila.............:  [9] -> pprint(\"Dieser Text ist [...]\",9)", 9)
-    P.pprint("Dieser Text ist hellblau.........: [10] -> pprint(\"Dieser Text ist [...]\",10)", 10)
-    P.pprint("Dieser Text ist dunkelblau.......: [11] -> pprint(\"Dieser Text ist [...]\",11)", 11)
-    P.pprint("Dieser Text ist hell hellblau....: [12] -> pprint(\"Dieser Text ist [...]\",12)", 12)
-    P.pprint("Dieser Text ist dunkel hellblau..: [13] -> pprint(\"Dieser Text ist [...]\",13)", 13)
-    P.pprint("Dies ist ein Text mit Border 1", 2, 1)
-    P.pprint("Dies ist ein Text mit Border 2", 2, 2)
-    P.pprint("Dies ist ein Text mit Border 3", 2, 3)
-    P.pprint("Dies ist ein Text mit Border 4", 2, 4)
+    P=PO()
+    P.pprint("Use Sample.py to see how it works",4,2)
